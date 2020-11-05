@@ -184,11 +184,15 @@ function showButtonListener() {
 }
 
 function clearButtonListener() {
+    console.log('ran')
     document.querySelectorAll(".removeable-assignment").forEach((a) => {
         a.parentElement.style = "";
         a.outerHTML = "";
     });
-    document.querySelector("#other-assignments-container").remove();
+    let otherThing = document.querySelector('#other-assignments-container')
+    if (otherThing) {
+        otherThing.remove()
+    }
     let clearButton = document.querySelector("#assignment-clear-button");
     clearButton.innerHTML = "<i class='fa fa-times'></i> Show";
     clearButton.onclick = showButtonListener;
