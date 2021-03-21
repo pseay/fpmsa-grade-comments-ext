@@ -3,7 +3,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
         //the page has finished loading
         chrome.tabs.sendMessage(tabId, {
             extension: 'assignment-organizer',
-            info: 'page loaded'
+            info: 'page loaded',
         });
     }
     if (changeInfo.url) {
@@ -12,8 +12,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
         chrome.tabs.sendMessage(tabId, {
             extension: 'assignment-organizer',
             info: 'url change',
-            url: changeInfo.url
+            url: changeInfo.url,
         });
     }
 });
-,,
