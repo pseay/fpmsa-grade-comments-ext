@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
-    "name": "Comment Retriever",
-    "description": "Utility for creating notifications for comments.",
+    "name": "Comment Grade Monitor",
+    "description": "Utility for creating notifications for comments and grades.",
     "version": "0.0.1",
     "icons": {
         "48": "icons/ico48.png"
@@ -9,10 +9,7 @@
     "permissions": ["tabs"],
     "content_scripts": [
         {
-            "matches": [
-                "https://francisparker.myschoolapp.com/*",
-                "http://francisparker.myschoolapp.com/*"
-            ],
+            "matches": ["https://francisparker.myschoolapp.com/*", "http://francisparker.myschoolapp.com/*"],
             "js": ["js/check-for-changes.js"]
         }
     ],
