@@ -169,7 +169,6 @@ function showButtonListener() {
 }
 
 function clearButtonListener() {
-    console.log('ran');
     document.querySelectorAll('.removeable-assignment').forEach((a) => {
         a.parentElement.style = '';
         a.outerHTML = '';
