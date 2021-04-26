@@ -14,33 +14,39 @@ function hashCode(text) {
 }
 
 function useData(data) {
-    data = data.map(dp => {
-        //TODO: set to id lookup
-        //addToCacheCache("id-lookup", id, title)
-        return {'id': dp.AssignmentId, 'comment': removeTags(dp.AdditionalInfo)};
+    data = data.map((dp) => {
+        let idVal = {
+            title: removeTags(dp.AssignmentShortDescription),
+            total: dp.MaxPoints,
+        };
+        addToCacheCache('id-lookup', dp.AssignmentId, idVal);
+        return { id: dp.AssignmentId, comment: removeTags(dp.AdditionalInfo), points: dp.Points };
     });
     let changePeriodEnd = getCurrentMillis();
-    let changePeriodStart = getFromCache("change-period-start") || null;
-    data = data.map(dp => { return {
-        ...dp,
-        "change-period-start": changePeriodStart,
-        "change-period-end": changePeriodEnd
-    }});
-    let commentHistory = getFromCache("comment-history");
+    let changePeriodStart = getFromCache('change-period-start') || null;
+    data = data.map((dp) => {
+        return {
+            ...dp,
+            'change-period-start': changePeriodStart,
+            'change-period-end': changePeriodEnd,
+        };
+    });
+    let commentHistory = getFromCache('comment-history') || [];
     let unmarkedData = [];
     for (const dp of data) {
         //TODO: generate notification list
-        //-- set to cache as text messages?
-        let previousComments = commentHistory.filter(chdp => chdp.id === dp.id);
+        let previousComments = commentHistory.filter((chdp) => chdp.id === dp.id);
         if (previousComments.length === 0) {
             //there is no previous record, so add the current data
             unmarkedData.push(dp);
+            //TODO: make new notification...
             //* new grade and ?comment
         } else {
-            let recentRecord = previousComments[previousComments.length-1];
+            let recentRecord = previousComments[previousComments.length - 1];
             if (recentRecord.comment !== dp.comment) {
                 //the comment record is not up to date, so add the current data
                 unmarkedData.push(dp);
+                //TODO: make new notification
                 //* new comment
                 //* get previous comment and show change "... -> ..."
             }
@@ -50,6 +56,7 @@ function useData(data) {
     //updating localStorage
     commentHistory = [...commentHistory, ...unmarkedData];
     setToCache("comment-history", commentHistory);
+    console.log(commentHistory);
 }
 
 async function main() {
