@@ -4,16 +4,33 @@ function getCurrentMillis() {
 
 function removeTags(taggedText) {
     let span = document.createElement("span");
-            span.innerHTML= taggedText;
-            let text = span.textContent;
-            return text;
+    span.innerHTML= taggedText;
+    let text = span.textContent;
+    return text;
 }
 
 function hashCode(text) {
     return s.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);              
 }
 
+function loadInfoPage() {
+    let iId = setInterval(function() {
+        if (location.href.includes("#gc/info") == false) {
+            clearInterval(iId);
+            return;
+        }
+        let loaded = document.querySelector("#site-header-container") != null;
+        if (loaded) {
+            document.querySelector("#skyui-header").outerHTML = "";
+            document.querySelector("#site-top-spacer").outerHTML = "";
+
+            clearInterval(iId);
+        }
+    }, 1000);
+}
+
 function useData(data) {
+    if (!data) return;
     data = data.map((dp) => {
         let idVal = {
             title: removeTags(dp.AssignmentShortDescription),
@@ -23,7 +40,7 @@ function useData(data) {
         return { id: dp.AssignmentId, comment: removeTags(dp.AdditionalInfo), points: dp.Points };
     });
     let changePeriodEnd = getCurrentMillis();
-    let changePeriodStart = getFromCache('change-period-start') || null;
+    let changePeriodStart = getFromCache('last-update') || null;
     data = data.map((dp) => {
         return {
             ...dp,
@@ -33,48 +50,60 @@ function useData(data) {
     });
     let commentHistory = getFromCache('comment-history') || [];
     let unmarkedData = [];
+    let notifications = [];
     for (const dp of data) {
-        //TODO: generate notification list
         let previousComments = commentHistory.filter((chdp) => chdp.id === dp.id);
         if (previousComments.length === 0) {
             //there is no previous record, so add the current data
             unmarkedData.push(dp);
-            //TODO: make new notification...
-            //* new grade and ?comment
+            //making notification
+            notifications.push({ ...dp, new: true });
         } else {
-            let recentRecord = previousComments[previousComments.length - 1];
-            if (recentRecord.comment !== dp.comment) {
-                //the comment record is not up to date, so add the current data
+            const recentRecord = previousComments[previousComments.length - 1];
+            const commentChange = recentRecord.comment !== dp.comment;
+            const pointsChange = recentRecord.points !== dp.points;
+            if (commentChange || pointsChange) {
+                //the comment/points record is not up to date, so add the current data
                 unmarkedData.push(dp);
-                //TODO: make new notification
-                //* new comment
-                //* get previous comment and show change "... -> ..."
+                //making notification
+                const prevComment = commentChange ? { comment: recentRecord.comment } : {};
+                const prevPoints = pointsChange ? { points: recentRecord.points } : {};
+                notifications.push({ ...dp, new: false, ...prevComment, ...prevPoints });
             }
         }
         //else, the prior info has covered this
     }
+    let prev_notifs = getFromCache('notifications') || [];
+    setToCache('notifications', [...prev_notifs, ...notifications]);
     //updating localStorage
     commentHistory = [...commentHistory, ...unmarkedData];
     setToCache("comment-history", commentHistory);
-    console.log(commentHistory);
 }
 
 async function main() {
-    let funcs = getFromCache("currentClassesSectionIds").map(sectionId => {
-        return async() => {
-            fetch(
-            'https://francisparker.myschoolapp.com/api/datadirect/GradeBookPerformanceAssignmentStudentList/?' + 
-            'sectionId=' + sectionId +
-            '&markingPeriodId=' + getFromCache("markingPeriodId") +
-            '&studentUserId=' + getFromCache("userId")
+    let ten_min = 600000;
+    if (getCurrentMillis() - getFromCache('last-update') < ten_min) {
+        return;
+    }
+    let funcs = getFromCache('currentClassesSectionIds').map((sectionId) => {
+        return new Promise(async  (resolve, reject) => {
+            await fetch(
+                'https://francisparker.myschoolapp.com/api/datadirect/GradeBookPerformanceAssignmentStudentList/?' +
+                    'sectionId=' +
+                    sectionId +
+                    '&markingPeriodId=' +
+                    getFromCache('markingPeriodId') +
+                    '&studentUserId=' +
+                    getFromCache('userId')
             )
                 .then((response) => response.json())
                 .then((data) => {
                     useData(data);
-                });
-        };
+                })
+                .catch(reject);
+            resolve(1);
+        });
     });
-    funcs.forEach(func => func());
     await Promise.all(funcs);
     setToCache('last-update', getCurrentMillis());
 }
@@ -180,9 +209,15 @@ function getFromCacheCache(name1, name2) {
 //receives message from background.js script
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if (request?.extension === 'grade-comment-monitor') {
+        if (location.href.includes('login')) {
+            return;
+        }
         main();
         if (location.href.includes('#studentmyday/progress')) {
             updateProgressPageData();
+        }
+        if (location.href.includes("#gc/info")) {
+            loadInfoPage();
         }
         updateMiscData();
     }
