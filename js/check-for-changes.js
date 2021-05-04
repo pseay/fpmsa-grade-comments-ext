@@ -35,10 +35,10 @@ function loadInfoPage() {
         }
         let loaded = document.querySelector('#site-header-container') != null;
         if (loaded) {
-            let uglyHeader = document.querySelector('#skyui-header');
-            let uglySpacer = document.querySelector('#site-top-spacer');
-            if (uglyHeader) uglyHeader.outerHTML = '';
-            if (uglySpacer) uglySpacer.outerHTML = '';
+            let badHeader = document.querySelector('#skyui-header');
+            let badSpacer = document.querySelector('#site-top-spacer');
+            if (badHeader) badHeader.outerHTML = '';
+            if (badSpacer) badSpacer.outerHTML = '';
 
             let infoPanel = document.createElement('div');
             infoPanel.setAttribute('style', 'width: 100%; height: calc(100vh - 100px); margin-top: 100px;');
@@ -51,8 +51,14 @@ function loadInfoPage() {
     }, 100);
 }
 
-async function showInfoPage(info_panel) {
-    info_panel.innerHTML = "<h1 style='color: blue;'>Hi, info panel!</h1>";
+async function showInfoPage(infoPanel) {
+    infoPanel.innerHTML = "<h1 style='color: blue;'>Notifications:</h1>";
+    const notifications = getFromCache('notifications') || [];
+    const idLookup = getFromCache('id-lookup') || {};
+    //TODO: map notifications -> notification with associated info from 'id-lookup' and 'comment-history'
+    notifications.forEach((notification) => {
+        infoPanel.innerHTML += '<h4>' + idLookup[notification].title + '</h4><br/>';
+    });
 }
 
 function useData(data) {
