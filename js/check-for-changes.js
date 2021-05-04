@@ -18,12 +18,17 @@ function hashCode(text) {
     }, 0);
 }
 
-function infoPageMain() {
+async function infoPageMain() {
     if (!location.href.includes('#gc/info')) {
+        //cleanup
         let panel = document.querySelector('#gc-info-panel');
         if (panel) {
             panel.outerHTML = '';
         }
+        let badHeader = document.querySelector('#skyui-header');
+        let badSpacer = document.querySelector('#site-top-spacer');
+        if (badHeader) badHeader.removeAttribute('style');
+        if (badSpacer) badSpacer.removeAttribute('style');
     }
 }
 
@@ -37,8 +42,8 @@ function loadInfoPage() {
         if (loaded) {
             let badHeader = document.querySelector('#skyui-header');
             let badSpacer = document.querySelector('#site-top-spacer');
-            if (badHeader) badHeader.outerHTML = '';
-            if (badSpacer) badSpacer.outerHTML = '';
+            if (badHeader) badHeader.setAttribute('style', 'display: none;');
+            if (badSpacer) badSpacer.setAttribute('style', 'display: none;');
 
             let infoPanel = document.createElement('div');
             infoPanel.setAttribute('style', 'width: 100%; height: calc(100vh - 100px); margin-top: 100px;');
