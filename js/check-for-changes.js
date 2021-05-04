@@ -18,6 +18,15 @@ function hashCode(text) {
     }, 0);
 }
 
+function infoPageMain() {
+    if (!location.href.includes('#gc/info')) {
+        let panel = document.querySelector('#gc-info-panel');
+        if (panel) {
+            panel.outerHTML = '';
+        }
+    }
+}
+
 function loadInfoPage() {
     let iId = setInterval(function () {
         if (location.href.includes('#gc/info') == false) {
@@ -26,8 +35,10 @@ function loadInfoPage() {
         }
         let loaded = document.querySelector('#site-header-container') != null;
         if (loaded) {
-            document.querySelector('#skyui-header').outerHTML = '';
-            document.querySelector('#site-top-spacer').outerHTML = '';
+            let uglyHeader = document.querySelector('#skyui-header');
+            let uglySpacer = document.querySelector('#site-top-spacer');
+            if (uglyHeader) uglyHeader.outerHTML = '';
+            if (uglySpacer) uglySpacer.outerHTML = '';
 
             let infoPanel = document.createElement('div');
             infoPanel.setAttribute('style', 'width: 100%; height: calc(100vh - 100px); margin-top: 100px;');
@@ -41,7 +52,7 @@ function loadInfoPage() {
 }
 
 async function showInfoPage(info_panel) {
-    info_panel.innerHTML  =  "<h1 style='color: blue;'>Hi, info panel!</h1>";
+    info_panel.innerHTML = "<h1 style='color: blue;'>Hi, info panel!</h1>";
 }
 
 function useData(data) {
@@ -229,6 +240,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             return;
         }
         main();
+        infoPageMain();
         if (location.href.includes('#studentmyday/progress')) {
             updateProgressPageData();
         }
