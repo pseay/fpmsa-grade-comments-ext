@@ -55,6 +55,7 @@ async function showInfoPage(infoPanel) {
     infoPanel.innerHTML = "<h1 style='color: blue;'>Notifications:</h1>";
     const notifications = getFromCache('notifications') || [];
     const idLookup = getFromCache('id-lookup') || {};
+    const commentHistory = getFromCache('comment-history');
     //TODO: map notifications -> notification with associated info from 'id-lookup' and 'comment-history'
     notifications.forEach((notification) => {
         infoPanel.innerHTML += '<h4>' + idLookup[notification].title + '</h4><br/>';
@@ -118,7 +119,7 @@ async function main() {
     if (getCurrentMillis() - getFromCache('last-update') < fiveMin) {
         return;
     }
-    let sectionIds = getFromCache('currentClassesSectionIds') || [];
+    let sectionIds = getFromCache('current-classes-section-ids') || [];
     let funcs = sectionIds.map((sectionId) => {
         return new Promise(async (resolve, reject) => {
             await fetch(
@@ -126,9 +127,9 @@ async function main() {
                     'sectionId=' +
                     sectionId +
                     '&markingPeriodId=' +
-                    getFromCache('markingPeriodId') +
+                    getFromCache('marking-period-id') +
                     '&studentUserId=' +
-                    getFromCache('userId')
+                    getFromCache('user-id')
             )
                 .then((response) => response.json())
                 .then((data) => {
@@ -147,12 +148,12 @@ async function getLongQueryParameter() {
     let data = await fetch(contextUrl).then((response) => response.json());
     let uid = data.UserInfo?.UserId;
     if (uid) {
-        setToCache('userId', uid);
+        setToCache('user-id', uid);
     }
     let currentSectionIds = data['Groups'].map((group) => group['CurrentSectionId']);
     let queryParam = [
         {
-            DurationId: getFromCache('durationId'),
+            DurationId: getFromCache('duration-id'),
             LeadSectionList: currentSectionIds.map((id) => {
                 return { LeadSectionId: id };
             }),
@@ -187,8 +188,8 @@ async function updateProgressPageData() {
             let cur = data[0].CurrentMarkingPeriod;
             if (cur) {
                 //setting it in the local storage
-                setToCache('durationId', id);
-                setToCache('markingPeriodId', data[0].MarkingPeriodId);
+                setToCache('duration-id', id);
+                setToCache('marking-period-id', data[0].MarkingPeriodId);
                 break;
             }
         }
@@ -209,7 +210,7 @@ async function updateMiscData() {
         ); //gets rid of free blocks
     });
     let sectionIds = groups.map((group) => group['LeadSectionId']);
-    setToCache('currentClassesSectionIds', sectionIds);
+    setToCache('current-classes-section-ids', sectionIds);
 }
 
 //cache reading and writing
