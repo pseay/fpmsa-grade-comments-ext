@@ -1,4 +1,5 @@
 const LOCAL_STORAGE_KEY = 'grade-comment-storage';
+const INTERVAL_LOAD_TIME = 100;//ms
 
 function getCurrentMillis() {
     return Date.parse(new Date());
@@ -19,8 +20,10 @@ function hashCode(text) {
 }
 
 async function infoPageMain() {
+    addNavButton();
+
+    //cleaning up after gc/info page
     if (!location.href.includes('#gc/info')) {
-        //cleanup
         let panel = document.querySelector('#gc-info-panel');
         if (panel) {
             panel.outerHTML = '';
@@ -29,6 +32,43 @@ async function infoPageMain() {
         let badSpacer = document.querySelector('#site-top-spacer');
         if (badHeader) badHeader.removeAttribute('style');
         if (badSpacer) badSpacer.removeAttribute('style');
+    }
+}
+
+async function addNavButton() {
+    //adding thing to top bar if it does not exist
+    function getClassName() {
+        let open = (getFromCache('notifications') || []).length > 0;
+        return 'fa fa-envelope' + (open ? '-open' : '');
+    }
+    if (!document.querySelector('#gc-info-nav-button')) {
+        //adding a whole new nav button
+        let nav = document.querySelector('#topnav-containter')?.children[0];
+        if (!nav) {
+            //waiting for nav bar to load
+            setTimeout(addNavButton, INTERVAL_LOAD_TIME);
+            return;
+        }
+
+        let infoNavButton = document.createElement('li');
+        infoNavButton.className = 'oneline';
+        infoNavButton.id = 'gc-info-nav-button';
+
+        let infoAnchor = document.createElement('a');
+        infoAnchor.href = '#gc/info';
+        infoAnchor.innerHTML = '<i class="' + getClassName() + '"></i>';
+        infoAnchor.setAttribute(
+            'style',
+            'font-size: 20px; display: flex; justify-content: center; align-items: center;'
+        );
+
+        infoNavButton.appendChild(infoAnchor);
+        nav.appendChild(infoNavButton);
+    } else {
+        //making sure envelope is right
+        let className = getClassName();
+        let i = document.querySelector('#gc-info-nav-button').querySelector('i');
+        i.className = className;
     }
 }
 
@@ -53,7 +93,7 @@ function loadInfoPage() {
             showInfoPage(infoPanel);
             clearInterval(iId);
         }
-    }, 100);
+    }, INTERVAL_LOAD_TIME);
 }
 
 async function showInfoPage(infoPanel) {
@@ -179,7 +219,7 @@ async function updateProgressPageData() {
             clearInterval(id);
             useIds(ids);
         }
-    }, 100);
+    }, INTERVAL_LOAD_TIME);
     // check each durationIds for currentMarkingPeriod
     async function useIds(ids) {
         const markingPeriodUrl = 'https://francisparker.myschoolapp.com/api/gradebook/GradeBookMyDayMarkingPeriods';
@@ -207,6 +247,9 @@ async function updateMiscData() {
     let groups = await fetch(contextUrl)
         .then((res) => res.json())
         .then((data) => data['Groups']);
+    if (!groups || !groups.filter) {
+        return;
+    }
     groups = groups.filter((group) => {
         return (
             group['Association'] === 1 && //class, not club or other
