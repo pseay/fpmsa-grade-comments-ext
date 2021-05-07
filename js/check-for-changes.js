@@ -1,5 +1,6 @@
 const LOCAL_STORAGE_KEY = 'grade-comment-storage';
 const INTERVAL_LOAD_TIME = 100;//ms
+const TIME_BETWEEN_REQUESTS = 300000;//ms : five minutes
 
 function getCurrentMillis() {
     return Date.parse(new Date());
@@ -86,8 +87,8 @@ function loadInfoPage() {
             if (badSpacer) badSpacer.setAttribute('style', 'display: none;');
 
             let infoPanel = document.createElement('div');
-            infoPanel.setAttribute('style', 'width: 100%; height: calc(100vh - 100px); margin-top: 100px;');
             infoPanel.setAttribute('id', 'gc-info-panel');
+            infoPanel.setAttribute('class', 'gc-info-panel');
             document.querySelector('#app').children[0].appendChild(infoPanel);
 
             showInfoPage(infoPanel);
@@ -97,7 +98,14 @@ function loadInfoPage() {
 }
 
 async function showInfoPage(infoPanel) {
-    infoPanel.innerHTML = "<h1 style='color: blue;'>Notifications:</h1>";
+    /*
+        div -flex
+            div -notifications
+                header
+                ul
+                    li -notification
+            div -graphs
+    */
     const notifications = getFromCache('notifications') || [];
     const idLookup = getFromCache('id-lookup') || {};
     const commentHistory = getFromCache('comment-history');
@@ -107,12 +115,13 @@ async function showInfoPage(infoPanel) {
     });
 }
 
-function useData(data) {
+function useData(data, sectionId) {
     if (!data || !data?.map) return;
     data = data.map((dp) => {
         let idVal = {
             title: removeTags(dp.AssignmentShortDescription),
             total: dp.MaxPoints,
+            sectionId: sectionId,
         };
         addToCacheCache('id-lookup', dp.AssignmentId, idVal);
         return { id: dp.AssignmentId, comment: removeTags(dp.AdditionalInfo), points: dp.Points };
@@ -160,8 +169,7 @@ function useData(data) {
 }
 
 async function main() {
-    let fiveMin = 300000;
-    if (getCurrentMillis() - getFromCache('last-update') < fiveMin) {
+    if (getCurrentMillis() - getFromCache('last-update') < TIME_BETWEEN_REQUESTS) {
         return;
     }
     let sectionIds = getFromCache('current-classes-section-ids') || [];
@@ -178,7 +186,7 @@ async function main() {
             )
                 .then((response) => response.json())
                 .then((data) => {
-                    useData(data);
+                    useData(data, sectionId);
                 })
                 .catch(reject);
             resolve(1);

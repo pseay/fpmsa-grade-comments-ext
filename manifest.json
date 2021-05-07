@@ -10,6 +10,7 @@
     "content_scripts": [
         {
             "matches": ["https://francisparker.myschoolapp.com/*", "http://francisparker.myschoolapp.com/*"],
+            "css": ["css/gc-info.css"],
             "js": ["js/check-for-changes.js"]
         }
     ],

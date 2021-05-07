@@ -1,0 +1,5 @@
+.gc-info-panel {
+    width: 100%;
+    height: calc(100vh - 100px);
+    margin-top: 100px;
+}
