@@ -127,11 +127,31 @@ async function showInfoPage(infoPanel) {
     //* Adding Notifications
     const notifications = getFromCache('notifications') || [];
     const idLookup = getFromCache('id-lookup') || {};
-    // [{ title, total, sectionId: (classId) }]
     const commentHistory = getFromCache('comment-history');
     let info = {};
 
-    //TODO: get section grades
+    let grades = {};// {sectionId: {points, total}}
+    let seen = {};
+    for (let i = commentHistory.length - 1; i >= 0; i--) {
+        const cur = commentHistory[i];
+        if (!seen[cur.id]) {
+            seen[cur.id] = true;
+            
+            const info = idLookup[cur.id];
+            if (info.total == 0 || cur.points == null) continue;
+            let section = grades[info.sectionId] || {};
+
+            let p = section.points || 0;
+            let t = section.total || 0;
+            p += 1*cur.points;
+            t += 1*info.total;
+
+            section.points = p;
+            section.total = t;
+            grades[info.sectionId] = section;
+        }
+    }
+
     notifications.forEach((notification) => {
         if (info[notification]) return;
         let obj = {};
@@ -178,7 +198,8 @@ async function showInfoPage(infoPanel) {
 
         let bottomBox = document.createElement('div');
         bottomBox.setAttribute('class', 'gc-notification-h-box');
-        function createNotificationInfoBox(data, max, singleClass, colorClass) {
+        
+        function createNotificationInfoBox(data, max, singleClass, colorClass, tfs = 15) {
             let ib = document.createElement('div');
             ib.setAttribute('class', 'gc-notification-box ' + singleClass + ' ' + colorClass);
             //* grade
@@ -202,7 +223,8 @@ async function showInfoPage(infoPanel) {
                 commentSpan.innerText = '" "';
             }
             //* time
-            let timeSpan = document.createElement('span');
+            let timeBox = document.createElement('div');
+            timeBox.setAttribute('class', 'gc-time-range-h-box');
             function formatTime(milliseconds) {
                 let str = new Date(milliseconds).toLocaleString();
                 let start = str.substring(0, str.lastIndexOf(':'));
@@ -215,26 +237,63 @@ async function showInfoPage(infoPanel) {
             }
             let start = formatTime(data['change-period-start']);
             let end = formatTime(data['change-period-end']);
-            timeSpan.innerText = start + ' - ' + end;
+
+            let startSpan = document.createElement('span');
+            startSpan.innerText = start;
+            startSpan.setAttribute('style', 'font-size: ' + tfs + 'px');
+            let dashSpan = document.createElement('span');
+            dashSpan.innerText = '-';
+            dashSpan.setAttribute('style', 'margin: 0 5px');
+            let endSpan = document.createElement('span');
+            endSpan.setAttribute('style', 'font-size: ' + tfs + 'px');
+            endSpan.innerText = end;
+
+            timeBox.appendChild(startSpan);
+            timeBox.appendChild(dashSpan);
+            timeBox.appendChild(endSpan);
+
             //* putting together
             ib.appendChild(gradeSpan);
             ib.appendChild(commentSpan);
-            ib.appendChild(timeSpan);
+            ib.appendChild(timeBox);
             return ib;
+        }
+        function getColorClass(info, points) {
+            const oaG = grades[info.sectionId];
+            const oaP = oaG.points;
+            const oaT = oaG.total || 0;
+            const aP = points;
+            const aT = info.total;
+            if (aT == 0 || oaT == 0 || aP == null) {
+                return 'gc-neutral';
+            }
+            const oaGrade = oaP / oaT;
+            const aGrade = aP / aT;
+            return oaGrade > aGrade ? 'gc-red' : 'gc-green';
         }
         if (notification.hist.length == 1) {
             let data = notification.hist[0];
-            //TODO: get color
-            infoBox = createNotificationInfoBox(data, notification.total, 'gc-single', 'gc-green');
+            const info = idLookup[data.id]
+            let colorClass = getColorClass(info, data.points);
+
+            infoBox = createNotificationInfoBox(data, notification.total, 'gc-single', colorClass);
             bottomBox.appendChild(infoBox);
         } else {
             let [previous, current] = notification.hist;
-            //TODO: get color
-            let oldInfoBox = createNotificationInfoBox(previous, notification.total, 'gc-double', 'gc-green');
-            //TODO: get color
-            let newInfoBox = createNotificationInfoBox(current, notification.total, 'gc-double', 'gc-green');
+            const info = idLookup[current.id];
+            let [oldColorClass, currentColorClass] = [getColorClass(info, previous.points), getColorClass(info, current.points)];
+            let oldInfoBox = createNotificationInfoBox(previous, notification.total, 'gc-double', oldColorClass, 10);
+            let newInfoBox = createNotificationInfoBox(current, notification.total, 'gc-double', currentColorClass, 10);
 
-            
+            let changeColorClass = previous.points > current.points ? 'gc-red' :
+                        current.points > previous.points ? 'gc-green' :
+                        'gc-neutral';
+            let arrow = document.createElement('i');
+            arrow.setAttribute('class', 'fa fa-arrow-right gc-arrow ' + changeColorClass);
+
+            bottomBox.appendChild(oldInfoBox);
+            bottomBox.appendChild(arrow);
+            bottomBox.appendChild(newInfoBox);
         }
 
         item.appendChild(topBox);

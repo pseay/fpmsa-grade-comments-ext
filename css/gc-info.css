@@ -83,6 +83,10 @@
     background: #EBC9C9;
 }
 
+.gc-notification-box.gc-neutral {
+    background: #B8CBD2;
+}
+
 .gc-notification-box.gc-single {
     width: 75%;
 }
@@ -94,4 +98,31 @@
 .gc-comment-span {
     overflow-y: auto;
     padding: 2px;
+}
+
+.gc-time-range-h-box {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.gc-time-range-h-box span {
+    text-align: center;
+}
+
+.gc-arrow {
+    font-size: 2rem !important;
+}
+
+.gc-arrow.gc-red {
+    color: #EBC9C9;
+}
+
+.gc-arrow.gc-green {
+    color: #B1EAB7;
+}
+
+.gc-arrow.gc-neutral {
+    color: #B8CBD2;
 }
