@@ -1,5 +1,5 @@
 const LOCAL_STORAGE_KEY = 'grade-comment-storage';
-const INTERVAL_LOAD_TIME = 100;//ms
+const INTERVAL_LOAD_TIME = 100;//ms : decisecond
 const TIME_BETWEEN_REQUESTS = 300000;//ms : five minutes
 
 function getCurrentMillis() {
@@ -106,13 +106,124 @@ async function showInfoPage(infoPanel) {
                     li -notification
             div -graphs
     */
+    //* Notification Panel Initialization
+    let notificationPanel = document.createElement('div');
+    notificationPanel.setAttribute('class', 'gc-notification-panel');
+    infoPanel.appendChild(notificationPanel);
+
+    let notificationTitle = document.createElement('h2');
+    notificationTitle.setAttribute('class', 'bb2-tile-header gc-notification-header');
+    notificationTitle.innerText = 'Notifications';
+    notificationPanel.appendChild(notificationTitle);
+
+    let hr = document.createElement('div');
+    hr.setAttribute('class', 'gc-notification-header-hr');
+    notificationPanel.appendChild(hr);
+
+    let notificationList = document.createElement('div');
+    notificationList.setAttribute('class', 'gc-notification-list');
+    notificationPanel.appendChild(notificationList);
+
+    //* Adding Notifications
     const notifications = getFromCache('notifications') || [];
     const idLookup = getFromCache('id-lookup') || {};
+    // [{ title, total, sectionId: (classId) }]
     const commentHistory = getFromCache('comment-history');
-    //TODO: map notifications -> notification with associated info from 'id-lookup' and 'comment-history'
+    let info = {};
+
+    //TODO: get section grades
     notifications.forEach((notification) => {
-        infoPanel.innerHTML += '<h4>' + idLookup[notification].title + '</h4><br/>';
+        if (info[notification]) return;
+        let obj = {};
+        obj = { ...idLookup[notification] };
+        const specificHistory = commentHistory.filter((val) => val.id === notification);
+        const shLen = specificHistory.length;
+        if (shLen >= 2) {
+            obj.hist = [specificHistory[shLen - 2], specificHistory[shLen - 1]];
+        } else if (shLen == 1) {
+            obj.hist = [specificHistory[0]];
+        } else {
+            //problem
+            console.error('no history for notification');
+            return;
+        }
+        info[notification] = obj;
     });
+    info = Object.keys(info).map(key => {
+        return {id: key, ...info[key]};
+    });
+    console.log(info);
+    info.forEach((notification) => {
+        let item = document.createElement('div');
+        item.setAttribute('class', 'gc-notification-item');
+
+        let topBox = document.createElement('div');
+        topBox.setAttribute('class', 'gc-notification-h-box');
+        topBox.innerHTML += '<i class="fa fa-times gc-x"></i>';
+        topBox.innerHTML += '<h5 class="gc-notification-title">' + notification.title + '</h5>';
+
+        let bottomBox = document.createElement('div');
+        bottomBox.setAttribute('class', 'gc-notification-h-box');
+        function createNotificationInfoBox(data, max, singleClass, colorClass) {
+            let ib = document.createElement('div');
+            ib.setAttribute('class', 'gc-notification-box ' + singleClass + ' ' + colorClass);
+            //* grade
+            let gradeText = '';
+            if (max == 0) {
+                //formative
+                gradeText = 'Formative: ' + data.points;
+            } else {
+                let percent = data.points * 1000 / max;
+                percent = Math.round(percent)/10;
+                gradeText = data.points + '/' + max + ' = ' + percent + '%';
+            }
+            let gradeSpan = document.createElement('span');
+            gradeSpan.innerText = gradeText;
+            //* comment
+            let commentSpan = document.createElement('span');
+            if (data.comment) {
+                commentSpan.innerText = '"' + data.comment + '"';
+                commentSpan.setAttribute('class', 'gc-comment-span');
+            } else {
+                commentSpan.innerText = '" "';
+            }
+            //* time
+            let timeSpan = document.createElement('span');
+            function formatTime(milliseconds) {
+                let str = new Date(milliseconds).toLocaleString();
+                let start = str.substring(0, str.lastIndexOf(':'));
+                let end = str.substring(str.lastIndexOf(':') + 3);
+                str = start + end;
+                start = str.substring(0, str.lastIndexOf('/'));
+                end = str.substring(str.lastIndexOf('/') + 6);
+                str = start + end;
+                return str;
+            }
+            let start = formatTime(data['change-period-start']);
+            let end = formatTime(data['change-period-end']);
+            timeSpan.innerText = start + ' - ' + end;
+            //* putting together
+            ib.appendChild(gradeSpan);
+            ib.appendChild(commentSpan);
+            ib.appendChild(timeSpan);
+            return ib;
+        }
+        if(notification.hist.length == 1) {
+            let data = notification.hist[0];
+            infoBox = createNotificationInfoBox(data, notification.total, 'gc-single', 'gc-green');
+            bottomBox.appendChild(infoBox);
+        } else {
+            let [previous, current] = notification.hist;
+            let oldInfoBox = document.createElement('div');
+            oldInfoBox.setAttribute('class', 'gc-notification-box gc-double');
+        }
+        
+        item.appendChild(topBox);
+        item.appendChild(bottomBox);
+        notificationList.appendChild(item);
+    });
+
+    //* Graph Panel Initialization
 }
 
 function useData(data, sectionId) {

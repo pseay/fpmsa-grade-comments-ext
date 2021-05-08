@@ -1,5 +1,90 @@
 .gc-info-panel {
+    display: flex;
+    flex-direction: row;
     width: 100%;
     height: calc(100vh - 100px);
     margin-top: 100px;
+}
+
+.gc-notification-panel {
+    display: flex;
+    flex-direction: column;
+    width: 30%;
+    height: calc(100% - 3rem);
+    margin-left: 1.5rem;
+    align-self: center;
+    background: white;
+    border-top: 3px solid #CDCFD2;
+}
+
+.gc-notification-header {
+    margin: 9px 15px;
+}
+
+.gc-notification-header-hr {
+    width: 100%;
+    background: #E2E3E4;
+    height: 1px;
+}
+
+.gc-notification-list {
+    margin-top: 0.2rem;
+    overflow-y: auto;
+}
+
+.gc-notification-item {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px dashed #CDCFD2;
+}
+
+.gc-notification-h-box {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.gc-x {
+    color: red;
+    font-size: 1.5rem !important;
+    margin: 0.5rem;
+}
+
+.gc-notification-title {
+    flex-grow: 1;
+    text-align: center;
+    font-weight: normal;
+    padding: 3px;
+}
+
+.gc-notification-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    border-radius: 20px;
+    height: 100px;
+    margin: 0.5rem;
+}
+
+.gc-notification-box.gc-green {
+    background: #B1EAB7;
+}
+
+.gc-notification-box.gc-red {
+    background: #EBC9C9;
+}
+
+.gc-notification-box.gc-single {
+    width: 75%;
+}
+
+.gc-notification-box.gc-double {
+    width: 40%;
+}
+/*TODO: add a scroll override */
+.gc-comment-span {
+    overflow-y: auto;
+    padding: 2px;
 }
