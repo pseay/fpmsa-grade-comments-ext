@@ -156,11 +156,25 @@ async function showInfoPage(infoPanel) {
     info.forEach((notification) => {
         let item = document.createElement('div');
         item.setAttribute('class', 'gc-notification-item');
+        item.id = notification.id;
 
         let topBox = document.createElement('div');
         topBox.setAttribute('class', 'gc-notification-h-box');
-        topBox.innerHTML += '<i class="fa fa-times gc-x"></i>';
-        topBox.innerHTML += '<h5 class="gc-notification-title">' + notification.title + '</h5>';
+
+        let xButton = document.createElement('i');
+        xButton.setAttribute('class', 'fa fa-times gc-x');
+        xButton.onclick = (e) => {
+            let notificationsInStorage = getFromCache('notifications') || [];
+            notificationsInStorage = notificationsInStorage.filter(n => n != notification.id);
+            setToCache('notifications', notificationsInStorage);
+            document.getElementById(notification.id).outerHTML = '';
+        };
+        topBox.appendChild(xButton);
+
+        let notificationTitle = document.createElement('h5');
+        notificationTitle.innerText = notification.title;
+        notificationTitle.setAttribute('class', 'gc-notification-title');
+        topBox.appendChild(notificationTitle);
 
         let bottomBox = document.createElement('div');
         bottomBox.setAttribute('class', 'gc-notification-h-box');
@@ -173,8 +187,8 @@ async function showInfoPage(infoPanel) {
                 //formative
                 gradeText = 'Formative: ' + data.points;
             } else {
-                let percent = data.points * 1000 / max;
-                percent = Math.round(percent)/10;
+                let percent = (data.points * 1000) / max;
+                percent = Math.round(percent) / 10;
                 gradeText = data.points + '/' + max + ' = ' + percent + '%';
             }
             let gradeSpan = document.createElement('span');
@@ -208,16 +222,21 @@ async function showInfoPage(infoPanel) {
             ib.appendChild(timeSpan);
             return ib;
         }
-        if(notification.hist.length == 1) {
+        if (notification.hist.length == 1) {
             let data = notification.hist[0];
+            //TODO: get color
             infoBox = createNotificationInfoBox(data, notification.total, 'gc-single', 'gc-green');
             bottomBox.appendChild(infoBox);
         } else {
             let [previous, current] = notification.hist;
-            let oldInfoBox = document.createElement('div');
-            oldInfoBox.setAttribute('class', 'gc-notification-box gc-double');
+            //TODO: get color
+            let oldInfoBox = createNotificationInfoBox(previous, notification.total, 'gc-double', 'gc-green');
+            //TODO: get color
+            let newInfoBox = createNotificationInfoBox(current, notification.total, 'gc-double', 'gc-green');
+
+            
         }
-        
+
         item.appendChild(topBox);
         item.appendChild(bottomBox);
         notificationList.appendChild(item);
@@ -265,8 +284,6 @@ function useData(data, sectionId) {
                 //the comment/points record is not up to date, so add the current data
                 unmarkedData.push(dp);
                 //making notification
-                //// const prevComment = commentChange ? { p_comment: recentRecord.comment } : {};
-                //// const prevPoints = pointsChange ? { p_points: recentRecord.points } : {};
                 newNotifications.push(dp.id);
             }
         }
