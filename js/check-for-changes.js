@@ -39,7 +39,7 @@ async function infoPageMain() {
 async function addNavButton() {
     //adding thing to top bar if it does not exist
     function getClassName() {
-        let open = (getFromCache('notifications') || []).length > 0;
+        let open = (getFromStorage('notifications') || []).length > 0;
         return 'fa fa-envelope' + (open ? '-open' : '');
     }
     if (!document.querySelector('#gc-info-nav-button')) {
@@ -131,9 +131,9 @@ function generateNotificationPanel(infoPanel) {
     notificationPanel.appendChild(notificationList);
 
     //* Adding Notifications
-    const notifications = getFromCache('notifications') || [];
-    const idLookup = getFromCache('id-lookup') || {};
-    const commentHistory = getFromCache('comment-history');
+    const notifications = getFromStorage('notifications') || [];
+    const idLookup = getFromStorage('id-lookup') || {};
+    const commentHistory = getFromStorage('comment-history');
     let info = {};
 
     let grades = {};// {sectionId: {points, total}}
@@ -189,9 +189,9 @@ function generateNotificationPanel(infoPanel) {
         let xButton = document.createElement('i');
         xButton.setAttribute('class', 'fa fa-times gc-x');
         xButton.onclick = (e) => {
-            let notificationsInStorage = getFromCache('notifications') || [];
+            let notificationsInStorage = getFromStorage('notifications') || [];
             notificationsInStorage = notificationsInStorage.filter(n => n != notification.id);
-            setToCache('notifications', notificationsInStorage);
+            setToStorage('notifications', notificationsInStorage);
             document.getElementById(notification.id).outerHTML = '';
         };
         topBox.appendChild(xButton);
@@ -339,12 +339,12 @@ function useData(data, sectionId) {
             total: dp.MaxPoints,
             sectionId: sectionId,
         };
-        addToCacheCache('id-lookup', dp.AssignmentId, idVal);
+        addToStorageCache('id-lookup', dp.AssignmentId, idVal);
         return { id: dp.AssignmentId, comment: removeTags(dp.AdditionalInfo), points: dp.Points };
     });
     //adding the change period start millis - end millis
     let changePeriodEnd = getCurrentMillis();
-    let changePeriodStart = getFromCache('last-update') || null;
+    let changePeriodStart = getFromStorage('last-update') || null;
     data = data.map((dp) => {
         return {
             ...dp,
@@ -352,7 +352,7 @@ function useData(data, sectionId) {
             'change-period-end': changePeriodEnd,
         };
     });
-    let commentHistory = getFromCache('comment-history') || [];
+    let commentHistory = getFromStorage('comment-history') || [];
     let unmarkedData = [];
     let newNotifications = [];
     for (const dp of data) {
@@ -375,18 +375,18 @@ function useData(data, sectionId) {
         }
         //else, the prior info has covered this
     }
-    let notifications = getFromCache('notifications') || [];
-    setToCache('notifications', [...notifications, ...newNotifications]);
+    let notifications = getFromStorage('notifications') || [];
+    setToStorage('notifications', [...notifications, ...newNotifications]);
     //updating localStorage
     commentHistory = [...commentHistory, ...unmarkedData];
-    setToCache('comment-history', commentHistory);
+    setToStorage('comment-history', commentHistory);
 }
 
 async function main() {
-    if (getCurrentMillis() - getFromCache('last-update') < TIME_BETWEEN_REQUESTS) {
+    if (getCurrentMillis() - getFromStorage('last-update') < TIME_BETWEEN_REQUESTS) {
         return;
     }
-    let sectionIds = getFromCache('current-classes-section-ids') || [];
+    let sectionIds = getFromStorage('current-classes-section-ids') || [];
     let funcs = sectionIds.map((sectionId) => {
         return new Promise(async (resolve, reject) => {
             await fetch(
@@ -394,9 +394,9 @@ async function main() {
                     'sectionId=' +
                     sectionId +
                     '&markingPeriodId=' +
-                    getFromCache('marking-period-id') +
+                    getFromStorage('marking-period-id') +
                     '&studentUserId=' +
-                    getFromCache('user-id')
+                    getFromStorage('user-id')
             )
                 .then((response) => response.json())
                 .then((data) => {
@@ -407,7 +407,7 @@ async function main() {
         });
     });
     await Promise.all(funcs);
-    setToCache('last-update', getCurrentMillis());
+    setToStorage('last-update', getCurrentMillis());
 }
 
 async function getLongQueryParameter() {
@@ -415,12 +415,12 @@ async function getLongQueryParameter() {
     let data = await fetch(contextUrl).then((response) => response.json());
     let uid = data.UserInfo?.UserId;
     if (uid) {
-        setToCache('user-id', uid);
+        setToStorage('user-id', uid);
     }
     let currentSectionIds = data['Groups'].map((group) => group['CurrentSectionId']);
     let queryParam = [
         {
-            DurationId: getFromCache('duration-id'),
+            DurationId: getFromStorage('duration-id'),
             LeadSectionList: currentSectionIds.map((id) => {
                 return { LeadSectionId: id };
             }),
@@ -429,7 +429,7 @@ async function getLongQueryParameter() {
     return queryParam;
 }
 
-//parses 'Progress' page for its data and sets localStorage "cache"
+//parses 'Progress' page for its data and sets localStorage
 async function updateProgressPageData() {
     //gets durationId which is needed for getting the currentMarkingPeriod
     //* --Getting the Current Duration ID--
@@ -455,8 +455,8 @@ async function updateProgressPageData() {
             let cur = data[0].CurrentMarkingPeriod;
             if (cur) {
                 //setting it in the local storage
-                setToCache('duration-id', id);
-                setToCache('marking-period-id', data[0].MarkingPeriodId);
+                setToStorage('duration-id', id);
+                setToStorage('marking-period-id', data[0].MarkingPeriodId);
                 break;
             }
         }
@@ -480,29 +480,29 @@ async function updateMiscData() {
         ); //gets rid of free blocks
     });
     let sectionIds = groups.map((group) => group['LeadSectionId']);
-    setToCache('current-classes-section-ids', sectionIds);
+    setToStorage('current-classes-section-ids', sectionIds);
     let sections = groups.map((group) => {
         return {
             sectionId: group['LeadSectionId'],
             name: group['GroupName'],
         };
     });
-    setToCache('current-sections', sections);
+    setToStorage('current-sections', sections);
 }
 
 //cache reading and writing
 //uses localStorage
-function setToCache(name, value) {
+function setToStorage(name, value) {
     let gcCache = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
     gcCache[name] = value;
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(gcCache));
 }
-function getFromCache(name) {
+function getFromStorage(name) {
     let gcCache = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
     return gcCache[name];
 }
 //sub cache reading and writing
-function addToCacheCache(name1, name2, value) {
+function addToStorageCache(name1, name2, value) {
     let gcCache = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
     let subCache = gcCache[name1] || {};
 
@@ -510,7 +510,7 @@ function addToCacheCache(name1, name2, value) {
     gcCache[name1] = subCache;
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(gcCache));
 }
-function getFromCacheCache(name1, name2) {
+function getFromStorageCache(name1, name2) {
     let gcCache = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
     let subCache = gcCache[name1] || {};
     return subCache[name2];
