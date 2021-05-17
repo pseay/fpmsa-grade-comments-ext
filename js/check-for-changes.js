@@ -184,7 +184,7 @@ function generateNotificationPanel(infoPanel) {
         item.id = notification.id;
 
         let topBox = document.createElement('div');
-        topBox.setAttribute('class', 'gc-notification-h-box');
+        topBox.setAttribute('class', 'gc-h-box');
 
         let xButton = document.createElement('i');
         xButton.setAttribute('class', 'fa fa-times gc-x');
@@ -202,7 +202,7 @@ function generateNotificationPanel(infoPanel) {
         topBox.appendChild(notificationTitle);
 
         let bottomBox = document.createElement('div');
-        bottomBox.setAttribute('class', 'gc-notification-h-box');
+        bottomBox.setAttribute('class', 'gc-h-box');
         
         function createNotificationInfoBox(data, max, singleClass, colorClass, tfs = 15) {
             let ib = document.createElement('div');
@@ -316,19 +316,51 @@ function generateGraphPanel(infoPanel) {
     graphPanel.setAttribute('class', 'gc-panel graph');
     infoPanel.appendChild(graphPanel);
 
+    let headerBox = document.createElement('div');
+    headerBox.setAttribute('class', 'gc-h-box between');
+
     let graphTitle = document.createElement('h2');
     graphTitle.setAttribute('class', 'bb2-tile-header gc-header');
     graphTitle.innerText = 'Graphs';
-    graphPanel.appendChild(graphTitle);
+    headerBox.appendChild(graphTitle);
 
     let classDropdown = document.createElement('select');
-    classDropdown.setAttribute('class', 'input-sm');
+    classDropdown.id = 'class-dropdown';
+    classDropdown.setAttribute('class', 'input-sm gc-class-dropdown');
 
+    getFromStorage('current-sections').map((section) => {
+        //section = {name, sectionId}
+        let option = document.createElement('option');
+        option.setAttribute('value', section.sectionId);
+        option.innerText = section.name;
+        classDropdown.appendChild(option);
+    });
+    headerBox.appendChild(classDropdown);
 
+    let axesDropdown = document.createElement('select');
+    axesDropdown.id = 'axes-dropdown';
+    axesDropdown.setAttribute('class', 'input-sm');
+    axesDropdown.setAttribute('style', 'margin-right: 15px;');
+    ['Grade/Time', 'Grade/Assignments'].forEach((text) => {
+        let option = document.createElement('option');
+        option.setAttribute('value', text);
+        option.innerText = text;
+        axesDropdown.appendChild(option);
+    });
+    headerBox.appendChild(axesDropdown);
+
+    graphPanel.appendChild(headerBox);
 
     let hr = document.createElement('div');
     hr.setAttribute('class', 'gc-header-hr');
     graphPanel.appendChild(hr);
+
+    //TODO: add svg
+
+    updateGraph();
+    function updateGraph() {
+        //TODO: read values, get data, & add DI
+    }
 }
 
 function useData(data, sectionId) {

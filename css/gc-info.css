@@ -43,11 +43,15 @@
     border-bottom: 1px dashed #CDCFD2;
 }
 
-.gc-notification-h-box {
+.gc-h-box {
     display: flex;
     flex-direction: row;
     justify-content: center;
     align-items: center;
+}
+
+.between {
+    justify-content: space-between;
 }
 
 .gc-x {
@@ -140,4 +144,9 @@
 
 .gc-arrow.gc-neutral {
     color: #B8CBD2;
+}
+
+.gc-class-dropdown {
+    flex-grow: 1;
+    margin: 0 30px 0 15px;
 }
