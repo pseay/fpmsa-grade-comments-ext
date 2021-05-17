@@ -321,6 +321,11 @@ function generateGraphPanel(infoPanel) {
     graphTitle.innerText = 'Graphs';
     graphPanel.appendChild(graphTitle);
 
+    let classDropdown = document.createElement('select');
+    classDropdown.setAttribute('class', 'input-sm');
+
+
+
     let hr = document.createElement('div');
     hr.setAttribute('class', 'gc-header-hr');
     graphPanel.appendChild(hr);
@@ -476,6 +481,13 @@ async function updateMiscData() {
     });
     let sectionIds = groups.map((group) => group['LeadSectionId']);
     setToCache('current-classes-section-ids', sectionIds);
+    let sections = groups.map((group) => {
+        return {
+            sectionId: group['LeadSectionId'],
+            name: group['GroupName'],
+        };
+    });
+    setToCache('current-sections', sections);
 }
 
 //cache reading and writing
