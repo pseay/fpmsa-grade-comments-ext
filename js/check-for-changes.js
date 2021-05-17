@@ -107,17 +107,23 @@ async function showInfoPage(infoPanel) {
             div -graphs
     */
     //* Notification Panel Initialization
+    generateNotificationPanel(infoPanel);
+    //* Graph Panel Initialization
+    generateGraphPanel(infoPanel);
+}
+
+function generateNotificationPanel(infoPanel) {
     let notificationPanel = document.createElement('div');
-    notificationPanel.setAttribute('class', 'gc-notification-panel');
+    notificationPanel.setAttribute('class', 'gc-panel notification');
     infoPanel.appendChild(notificationPanel);
 
     let notificationTitle = document.createElement('h2');
-    notificationTitle.setAttribute('class', 'bb2-tile-header gc-notification-header');
+    notificationTitle.setAttribute('class', 'bb2-tile-header gc-header notification');
     notificationTitle.innerText = 'Notifications';
     notificationPanel.appendChild(notificationTitle);
 
     let hr = document.createElement('div');
-    hr.setAttribute('class', 'gc-notification-header-hr');
+    hr.setAttribute('class', 'gc-header-hr notification');
     notificationPanel.appendChild(hr);
 
     let notificationList = document.createElement('div');
@@ -172,7 +178,6 @@ async function showInfoPage(infoPanel) {
     info = Object.keys(info).map(key => {
         return {id: key, ...info[key]};
     });
-    console.log(info);
     info.forEach((notification) => {
         let item = document.createElement('div');
         item.setAttribute('class', 'gc-notification-item');
@@ -259,7 +264,11 @@ async function showInfoPage(infoPanel) {
             return ib;
         }
         function getColorClass(info, points) {
+            console.log({ grades, info });
             const oaG = grades[info.sectionId];
+            if (oaG == undefined) {
+                return 'gc-neutral';
+            }
             const oaP = oaG.points;
             const oaT = oaG.total || 0;
             const aP = points;
@@ -300,8 +309,21 @@ async function showInfoPage(infoPanel) {
         item.appendChild(bottomBox);
         notificationList.appendChild(item);
     });
+}
 
-    //* Graph Panel Initialization
+function generateGraphPanel(infoPanel) {
+    let graphPanel = document.createElement('div');
+    graphPanel.setAttribute('class', 'gc-panel graph');
+    infoPanel.appendChild(graphPanel);
+
+    let graphTitle = document.createElement('h2');
+    graphTitle.setAttribute('class', 'bb2-tile-header gc-header');
+    graphTitle.innerText = 'Graphs';
+    graphPanel.appendChild(graphTitle);
+
+    let hr = document.createElement('div');
+    hr.setAttribute('class', 'gc-header-hr');
+    graphPanel.appendChild(hr);
 }
 
 function useData(data, sectionId) {

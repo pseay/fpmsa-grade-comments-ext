@@ -6,23 +6,27 @@
     margin-top: 100px;
 }
 
-.gc-notification-panel {
+.gc-panel {
     display: flex;
     flex-direction: column;
     width: 30%;
     height: calc(100% - 3rem);
-    margin-left: 1.5rem;
+    margin: 0 1.5rem;
     align-self: center;
     background: white;
     border-top: 3px solid #CDCFD2;
 }
 
-.gc-notification-header {
+.gc-panel.graph {
+    flex-grow: 1;
+}
+
+.gc-header {
     margin: 9px 15px;
     font-family: "Blackbaud Sans Condensed", "Helvetica Neue Condensed", "Arial Narrow";
 }
 
-.gc-notification-header-hr {
+.gc-header-hr {
     width: 100%;
     background: #E2E3E4;
     height: 1px;
