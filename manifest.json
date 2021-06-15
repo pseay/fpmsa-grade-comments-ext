@@ -11,7 +11,7 @@
         {
             "matches": ["https://francisparker.myschoolapp.com/*", "http://francisparker.myschoolapp.com/*"],
             "css": ["css/gc-info.css"],
-            "js": ["js/check-for-changes.js"]
+            "js": ["js/check-for-changes.js", "js/graph-loader.js", "js/d3.js"]
         }
     ],
     "background": {

@@ -311,7 +311,7 @@ function generateNotificationPanel(infoPanel) {
     });
 }
 
-function generateGraphPanel(infoPanel) {
+async function generateGraphPanel(infoPanel) {
     let graphPanel = document.createElement('div');
     graphPanel.setAttribute('class', 'gc-panel graph');
     infoPanel.appendChild(graphPanel);
@@ -335,6 +335,7 @@ function generateGraphPanel(infoPanel) {
         option.innerText = section.name;
         classDropdown.appendChild(option);
     });
+    classDropdown.onchange = updateGraph;
     headerBox.appendChild(classDropdown);
 
     let axesDropdown = document.createElement('select');
@@ -347,6 +348,7 @@ function generateGraphPanel(infoPanel) {
         option.innerText = text;
         axesDropdown.appendChild(option);
     });
+    axesDropdown.onchange = updateGraph;
     headerBox.appendChild(axesDropdown);
 
     graphPanel.appendChild(headerBox);
@@ -355,11 +357,22 @@ function generateGraphPanel(infoPanel) {
     hr.setAttribute('class', 'gc-header-hr');
     graphPanel.appendChild(hr);
 
-    //TODO: add svg
+    let svg = document.createElement('svg');
+    svg.id = 'graph-svg';
+    // svg.setAttribute('style', 'height: calc(100% - 50px);');
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', '380');
+    graphPanel.appendChild(svg);
 
     updateGraph();
     function updateGraph() {
+        //svg reset
+        document.getElementById('graph-svg').innerHTML = '';
         //TODO: read values, get data, & add DI
+        let sectionId = document.getElementById('class-dropdown').value;
+        let axes = document.getElementById('axes-dropdown').value;
+        console.log({ sectionId, axes });
+        loadGraph();
     }
 }
 
@@ -548,6 +561,16 @@ function getFromStorageCache(name1, name2) {
     return subCache[name2];
 }
 
+async function addInfoPageDependencies(fun) {
+    let head = document.querySelector('head');
+    let script = document.createElement('script');
+    script.setAttribute('src', 'https://d3js.org/d3.v6.min.js');
+    script.onload = function () {
+        console.log(d3);
+    };
+    head.appendChild(script);
+}
+
 //message listener
 //receives message from background.js script
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
@@ -561,6 +584,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             updateProgressPageData();
         }
         if (location.href.includes('#gc/info')) {
+            addInfoPageDependencies();
             loadInfoPage();
         }
         updateMiscData();
