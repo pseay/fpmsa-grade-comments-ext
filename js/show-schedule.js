@@ -59,34 +59,6 @@ function showAssignments(scheduleTable) {
     }
 }
 
-function addLinks(scheduleTable) {
-    let rows = scheduleTable.querySelectorAll('tr');
-    OUTER: rows.forEach((r) => {
-        let tds = r.querySelectorAll('td');
-        let classTitle, link;
-        INNER: for (let i = tds.length - 1; i >= 0; i--) {
-            if (tds[i].getAttribute('data-heading') === 'Activity') {
-                classTitle = tds[i].innerText;
-                let links = JSON.parse(localStorage.getItem('class-links'));
-                DOUBLE_INNER: for (let j = 0; j < links?.length; j++) {
-                    if (links[j].classTitle.includes(classTitle)) {
-                        link = links[j].link;
-                    }
-                }
-            } else if (link && tds[i].getAttribute('data-heading') === 'Block') {
-                tds[i].innerHTML += '<br/>';
-                let anchor = document.createElement('a');
-                anchor.href = link;
-                anchor.style = 'text-decoration:underline;';
-                anchor.target = '_blank';
-                anchor.innerText = tds[i].innerText.trim() + ' Link';
-                tds[i].innerText = '';
-                tds[i].appendChild(anchor);
-            }
-        }
-    });
-}
-
 function formatDate(date) {
     //format string from ex. 'Monday, October 5, 2020' to '10/5/2020' to match the assignment due date
     let middle = date.split(', ')[1];
@@ -104,7 +76,7 @@ function formatDate(date) {
         September: 9,
         October: 10,
         November: 11,
-        December: 12
+        December: 12,
     };
     month = months[month] + '';
     let day = middle.split(' ')[1];
@@ -112,49 +84,8 @@ function formatDate(date) {
 }
 
 function loadSchedulePage() {
-    let makeTableAdditionsInterval = setInterval(
-        () => makeTableAdditionsLoop(makeTableAdditionsInterval),
-        1000
-    );
+    let makeTableAdditionsInterval = setInterval(() => makeTableAdditionsLoop(makeTableAdditionsInterval), 1000);
     let addListenersInterval = setInterval(() => addArrowListenersLoop(addListenersInterval), 1000);
-    let addOfficeHoursLinksInterval = setInterval(() => {
-        addOfficeHoursLinks(addOfficeHoursLinksInterval);
-    }, 1000);
-}
-
-function addOfficeHoursLinks(loop) {
-    if (document.querySelector('#office-hours-links-container')) {
-        return;
-    }
-    let mainColumn = document.querySelector('#col-main');
-    if (mainColumn) {
-        clearInterval(loop);
-        let div = document.createElement('div');
-        div.id = 'office-hours-links-container';
-        div.className = 'ch removeable-section';
-        div.style = 'display:flex;flex-direction:column;align-items:center;';
-
-        let header = document.createElement('h2');
-        header.innerText = 'Office Hours Links:';
-
-        let list = document.createElement('ul');
-        //adding list items
-        let officeHoursLinks = JSON.parse(localStorage.getItem('office-hours-links'));
-        officeHoursLinks.forEach((officeHoursLink) => {
-            //officeHoursLink props: classTitle, link
-            let listItem = document.createElement('li');
-            let anchor = document.createElement('a');
-            anchor.innerText = officeHoursLink.classTitle;
-            anchor.href = officeHoursLink.link;
-            anchor.target = '_blank';
-            listItem.appendChild(anchor);
-            list.appendChild(listItem);
-        });
-
-        div.appendChild(header);
-        div.appendChild(list);
-        mainColumn.appendChild(div);
-    }
 }
 
 function showButtonListener() {
@@ -214,12 +145,8 @@ function addClearButtonLoop(loop) {
 }
 
 function addArrowListenersLoop(loop) {
-    let rightArrow = document.querySelector(
-        '.chCal-button.chCal-button-next.chCal-state-default.chCal-corner-right'
-    );
-    let leftArrow = document.querySelector(
-        '.chCal-button.chCal-button-prev.chCal-state-default.chCal-corner-left'
-    );
+    let rightArrow = document.querySelector('.chCal-button.chCal-button-next.chCal-state-default.chCal-corner-right');
+    let leftArrow = document.querySelector('.chCal-button.chCal-button-prev.chCal-state-default.chCal-corner-left');
     if (leftArrow && rightArrow) {
         leftArrow.onclick = () => {
             document.querySelectorAll('.removeable-section').forEach((section) => section.remove());
@@ -243,9 +170,7 @@ function addMissingAssignments(schedule) {
     //gets classes
     for (let i = 0; i < rows?.length; classes.push(rows[i++].children[2].innerText)) {}
     //gets date
-    const scheduleDate = formatDate(
-        document.querySelector('#schedule-header').querySelector('h2').innerText
-    );
+    const scheduleDate = formatDate(document.querySelector('#schedule-header').querySelector('h2').innerText);
     //sorts missing assignments
     missingAssignments = missingAssignments.filter((assignment) => {
         return !classes.includes(assignment.class) && assignment.due == scheduleDate;
@@ -293,12 +218,7 @@ function addMissingAssignments(schedule) {
             div2.appendChild(span);
         });
         div.appendChild(div2);
-        let ohlc = document.querySelector('#office-hours-links-container');
-        if (ohlc) {
-            ohlc.parentNode.insertBefore(div, ohlc);
-        } else {
-            mainColumn.appendChild(div);
-        }
+        mainColumn.appendChild(div);
     }
 }
 
@@ -308,7 +228,6 @@ function makeTableAdditionsLoop(looper) {
         schedule.setAttribute('aoch', 't');
         clearInterval(looper);
         showAssignments(schedule);
-        addLinks(schedule);
         addMissingAssignments(schedule);
     }
 }
