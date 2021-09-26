@@ -94,13 +94,10 @@ async function getData() {
         (year + 1) +
         '&persona=2';
 
-    console.log(url);
-
     //{ class (groupname), name (short_description), due (date_due "dd/mm/yyyy hh:mm am|pm"), status }
     fetch(url)
         .then((response) => response.json())
         .then((data) => {
-            console.count('data fetched');
             let assignments = data.map((assignment) => {
                 return {
                     class: assignment.groupname,
