@@ -9,11 +9,8 @@
     "permissions": ["tabs"],
     "content_scripts": [
         {
-            "matches": [
-                "https://francisparker.myschoolapp.com/*",
-                "http://francisparker.myschoolapp.com/*"
-            ],
-            "js": ["js/get-assignments.js", "js/show-schedule.js", "js/get-links.js"]
+            "matches": ["https://francisparker.myschoolapp.com/*", "http://francisparker.myschoolapp.com/*"],
+            "js": ["js/get-assignments.js", "js/show-schedule.js"]
         }
     ],
     "background": {

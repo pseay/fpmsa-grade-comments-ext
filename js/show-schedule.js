@@ -29,7 +29,7 @@ function showAssignments(scheduleTable) {
                 container.style = 'display:flex;flex-direction:column;';
                 let span = document.createElement('span');
                 let styling = '';
-                if (assignment.status) {
+                if (assignment.status > 0) {
                     span.setAttribute('checked', 'true');
                     styling = 'background-color:#B7DA9B;';
                 } else {
@@ -48,14 +48,11 @@ function showAssignments(scheduleTable) {
                         span.style.setProperty('background-color', '#B7DA9B');
                     }
                 };
-                span.innerText = assignment.details;
+                span.innerHTML = assignment.name;
                 container.appendChild(span);
             }
         });
-        let addClearButtonInterval = setInterval(
-            () => addClearButtonLoop(addClearButtonInterval),
-            1000
-        );
+        let addClearButtonInterval = setInterval(() => addClearButtonLoop(addClearButtonInterval), 1000);
     }
 }
 
@@ -83,9 +80,37 @@ function formatDate(date) {
     return month + '/' + day + '/' + year;
 }
 
-function loadSchedulePage() {
+async function loadSchedulePage() {
     let makeTableAdditionsInterval = setInterval(() => makeTableAdditionsLoop(makeTableAdditionsInterval), 1000);
     let addListenersInterval = setInterval(() => addArrowListenersLoop(addListenersInterval), 1000);
+}
+
+async function getData() {
+    let year = new Date().getFullYear();
+    let url =
+        'https://francisparker.myschoolapp.com/api/DataDirect/AssignmentCenterAssignments/?format=json&filter=2&dateStart=11%2F1%2F' +
+        (year - 1) +
+        '&dateEnd=2%2F1%2F' +
+        (year + 1) +
+        '&persona=2';
+
+    console.log(url);
+
+    //{ class (groupname), name (short_description), due (date_due "dd/mm/yyyy hh:mm am|pm"), status }
+    fetch(url)
+        .then((response) => response.json())
+        .then((data) => {
+            console.count('data fetched');
+            let assignments = data.map((assignment) => {
+                return {
+                    class: assignment.groupname,
+                    name: assignment.short_description,
+                    due: assignment.date_due.split(' ')[0],
+                    status: assignment.assignment_status,
+                };
+            });
+            localStorage['assignment-data'] = JSON.stringify(assignments);
+        });
 }
 
 function showButtonListener() {
@@ -237,7 +262,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         //check to see if it is this url
         if (location.href.includes('#studentmyday/schedule')) {
             //page is schedule
-            loadSchedulePage();
+            getData().then(() => loadSchedulePage());
         }
     }
 });
