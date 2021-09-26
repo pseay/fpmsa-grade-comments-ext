@@ -140,7 +140,7 @@ function addClearButtonLoop(loop) {
         document.querySelector('assignment-clear-button') ||
         document.querySelectorAll('.removeable-assignment')?.length == 0
     ) {
-        //stops the program if there are no assignments for the day
+        //stops the function if there are no assignments for the day
         //or if there is already a clear button
         return;
     }
@@ -244,11 +244,34 @@ function addMissingAssignments(schedule) {
     }
 }
 
+function addOpenAllButton(schedule) {
+    if (document.getElementById('open-all-button')) {
+        return;
+    }
+
+    //make button
+    let button = document.createElement('button');
+    button.id = 'open-all-button';
+    button.setAttribute('style', 'margin-left: 15px;');
+    button.innerHTML = '<i class="fa fa-external-link"></i> Open All';
+    button.onclick = () => {
+        schedule.querySelectorAll("td[data-heading='Activity']").forEach((element) => {
+            let link = element.querySelector('a').href;
+            window.open(link);
+        });
+    };
+
+    //add to header
+    let header = schedule.parentElement.querySelector('thead').querySelector('tr').children[2];
+    header.appendChild(button);
+}
+
 function makeTableAdditionsLoop(looper) {
     let schedule = document.querySelector('#accordionSchedules');
     if (schedule && schedule.getAttribute('aoch') !== 't') {
         schedule.setAttribute('aoch', 't');
         clearInterval(looper);
+        addOpenAllButton(schedule);
         showAssignments(schedule);
         addMissingAssignments(schedule);
     }
