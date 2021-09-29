@@ -236,7 +236,7 @@ function addMissingAssignments(schedule) {
                     span.style.setProperty('background-color', '#B7DA9B');
                 }
             };
-            span.innerText = assignment.details;
+            span.innerText = assignment.name;
             div2.appendChild(span);
         });
         div.appendChild(div2);
