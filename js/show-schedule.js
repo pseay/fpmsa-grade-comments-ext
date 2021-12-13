@@ -98,7 +98,7 @@ async function getData() {
     fetch(url)
         .then((response) => response.json())
         .then((data) => {
-			if (!data) return;
+			if (!data || !data.map) return;
             let assignments = data.map((assignment) => {
                 return {
                     class: assignment.groupname,
